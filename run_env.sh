@@ -1,7 +1,8 @@
-# project environment variables
-PROJECT_DIR=$(pwd)
+#!/bin/bash
 
-# setup path
+# project environment variables
+export PROJECT_DIR=$(pwd)
+
 export PATH="$PROJECT_DIR:$PATH"
 export PYTHONPATH="$PROJECT_DIR:$PYTHONPATH"
 

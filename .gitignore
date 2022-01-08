@@ -2,9 +2,19 @@
 .DS_Store
 .DS_Store?
 
-# Notebooks
+# Notebooks cache
 .ipynb_checkpoints
 
 # Python cache
 __pycache__/
 *.py[cod]
+
+# Secrets
+*.token
+
+# SFTP
+sftp-config.json
+
+# Data folder
+data/*
+!data/.gitkeep

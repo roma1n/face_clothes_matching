@@ -1,12 +1,19 @@
-import abc
+import torch
+from torch import nn
+
+import config
+from lib.models.abstract_model import AbstractModel
+from lib.models.embedder_trainer import EmbedderTrainer
 
 
-class AbstractModel:
-    @abc.abstractmethod
+class FaceEmbedder(AbstractModel, nn.Module):
+    def __init__(self):
+        AbstractModel.__init__(self)
+        nn.Module.__init__(self)
+
+        self.model = self.load_base_model()
+
     def apply(self, input):
-        '''
-        Model application on single object. Must be implemented specifically for each model.
-        '''
         pass
 
     def apply_batched(self, batch):
@@ -27,4 +34,13 @@ class AbstractModel:
         '''
         Runs model training if needed.
         '''
-        pass
+        trainer = EmbedderTrainer(
+            embedder=self.model,
+            heads={
+                
+            }
+        )
+
+    def load_base_model(self):
+
+        return model
