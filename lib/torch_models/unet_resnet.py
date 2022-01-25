@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 
-class UNET(nn.Module):
+class UnetResnet(nn.Module):
     class ConvBlock(nn.Module):
         def __init__(self, in_channels, out_channels):
             super().__init__()
@@ -21,19 +21,21 @@ class UNET(nn.Module):
         def __init__(self, channels):
             super().__init__()
 
-            self.conv_1 = UNET.ConvBlock(channels, channels)
-            self.conv_2 = UNET.ConvBlock(channels, channels)
+            self.conv_1 = UnetResnet.ConvBlock(channels, channels)
+            self.conv_2 = UnetResnet.ConvBlock(channels, channels)
 
         def forward(self, x):
+            input_tensor = x
             x = self.conv_1(x)
             x = self.conv_2(x)
+            x = x + input_tensor
             return x
 
     class DownScaleBlock(nn.Module):
         def __init__(self, channels):
             super().__init__()
 
-            self.transform_block = UNET.TransformationBlock(channels)
+            self.transform_block = UnetResnet.TransformationBlock(channels)
             self.down_scale = nn.Conv2d(channels, 2 * channels, 4, padding=1, stride=2)
 
         def forward(self, x):
@@ -46,7 +48,7 @@ class UNET(nn.Module):
             super().__init__()
 
             self.up_scale = nn.ConvTranspose2d(4 * channels, channels, 4, padding=1, stride=2)
-            self.transform_block = UNET.TransformationBlock(channels)
+            self.transform_block = UnetResnet.TransformationBlock(channels)
 
         def forward(self, x):
             x = self.up_scale(x)
@@ -62,15 +64,15 @@ class UNET(nn.Module):
 
         self.conv_in = nn.Conv2d(3, self.base_channel_num, 1)
 
-        self.down_1 = UNET.DownScaleBlock(1 * self.base_channel_num)
-        self.down_2 = UNET.DownScaleBlock(2 * self.base_channel_num)
-        self.down_3 = UNET.DownScaleBlock(4 * self.base_channel_num)
+        self.down_1 = UnetResnet.DownScaleBlock(1 * self.base_channel_num)
+        self.down_2 = UnetResnet.DownScaleBlock(2 * self.base_channel_num)
+        self.down_3 = UnetResnet.DownScaleBlock(4 * self.base_channel_num)
 
-        self.transform_block = UNET.TransformationBlock(8 * self.base_channel_num)
+        self.transform_block = UnetResnet.TransformationBlock(8 * self.base_channel_num)
 
-        self.up_3 = UNET.UpScaleBlock(4 * self.base_channel_num)
-        self.up_2 = UNET.UpScaleBlock(2 * self.base_channel_num)
-        self.up_1 = UNET.UpScaleBlock(1 * self.base_channel_num)
+        self.up_3 = UnetResnet.UpScaleBlock(4 * self.base_channel_num)
+        self.up_2 = UnetResnet.UpScaleBlock(2 * self.base_channel_num)
+        self.up_1 = UnetResnet.UpScaleBlock(1 * self.base_channel_num)
 
         self.conv_out = nn.Conv2d(self.base_channel_num, self.num_classes, 1)
         self.acti_out = nn.Sigmoid()
@@ -96,7 +98,7 @@ class UNET(nn.Module):
 if __name__ == '__main__':
     from torchinfo import summary
 
-    unet = UNET(num_classes=45)
+    unet_resnet = UnetResnet(num_classes=45)
     batch_size = 100
 
-    summary(unet, (batch_size, 3, 224, 224))
+    summary(unet_resnet, (batch_size, 3, 224, 224))

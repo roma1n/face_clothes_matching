@@ -7,7 +7,7 @@ echo "Executing task: ${TASK}"
 
 cd ${PROJECT_DIR}
 
-pipenv run python bin/main.py ${TASK}
+python bin/main.py ${TASK}
 
 echo "Finished task: ${TASK}"
 
