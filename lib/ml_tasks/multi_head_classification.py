@@ -18,7 +18,10 @@ from pytorch_lightning import (
     Trainer,
 )
 
-from lib import metrics
+from lib.utils import (
+    augmentations,
+    metrics,
+)
 from lib.torch_models import resnet
 
 
@@ -64,11 +67,28 @@ class MultiHeadClassification(LightningModule):
             else:
                 loss += head_loss
 
-        return loss, {"loss": loss.item()}
+        logs = {"loss": loss.item()}
+        logs.update({
+            f'roc_auc_{head_name}': metrics.roc_auc(
+                logits[head_name],
+                labels[head_name],
+                num_classes=self.heads_desc[head_name],
+            ) for head_name in labels
+        })
+        logs.update({
+            f'accuracy_{head_name}': metrics.accuracy(
+                logits[head_name],
+                labels[head_name],
+            ) for head_name in labels
+        })
+
+        return loss, logs
 
     def training_step(self, batch, batch_idx):
         loss, logs = self.step(batch, batch_idx)
-        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
+        print(logs)
+        self.log_dict({f"step_train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
+        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -78,7 +98,7 @@ class MultiHeadClassification(LightningModule):
 
     def configure_optimizers(self):
         return torch.optim.Adam([
-            {'params': self.embedder.parameters(), 'lr': self.embedder_lr},
+            {'params': self.embedder.parameters(), 'lr': self.embedder_lr, 'weight_decay': 1e-4},
             {'params': self.heads.parameters(), 'lr': self.heads_lr},
         ])
  
@@ -146,15 +166,18 @@ class ClassificationDataset(Dataset):
         item_desc = self.desc[idx]
         fname = item_desc['img']
 
-        item = {'img': torch.tensor(np.load(os.path.join(self.path, '{}.npy'.format(fname)))).float()}
+        img = np.load(os.path.join(self.path, '{}.npy'.format(fname)))
+
+        if self.split == 'train':
+            img = augmentations.augmentate_image(img)
+
+        item = {'img': torch.tensor(img).float()}
 
         item.update({
             k: self._get_label(k, item_desc[k] if k in item_desc else None) for k in self.heads_desc
         })
 
         return item
-
-
 
 
 class FaceClassificationDataModule(LightningDataModule):
