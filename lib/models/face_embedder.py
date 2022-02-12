@@ -1,9 +1,8 @@
-import torch
+from deepface import DeepFace
 from torch import nn
 
 import config
 from lib.models.abstract_model import AbstractModel
-from lib.models.embedder_trainer import EmbedderTrainer
 
 
 class FaceEmbedder(AbstractModel, nn.Module):
@@ -14,14 +13,13 @@ class FaceEmbedder(AbstractModel, nn.Module):
         self.model = self.load_base_model()
 
     def apply(self, input):
-        pass
+        return DeepFace.represent(input, model=self.model, detector_backend='ssd')
 
     def apply_batched(self, batch):
         '''
         Model application on batch. Applies on elements one by one by default. 
         Should be implemented if more efficient batch application is possible.
         '''
-
         return [self.apply(elem) for elem in batch]
 
     def get_torch_model(self):
@@ -34,13 +32,7 @@ class FaceEmbedder(AbstractModel, nn.Module):
         '''
         Runs model training if needed.
         '''
-        trainer = EmbedderTrainer(
-            embedder=self.model,
-            heads={
-                
-            }
-        )
+        pass
 
     def load_base_model(self):
-
-        return model
+        return DeepFace.build_model(config.DEEPFACE_MODEL)

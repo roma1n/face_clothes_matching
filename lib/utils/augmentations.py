@@ -3,14 +3,14 @@ from skimage import filters
 
 
 def augmentate_image(img):
-    # Случайный разворот относительно вертикальной оси
+    # Random vertical flip
     if np.random.rand() < 0.5:
-        img = img[:,::-1]
+        img = img[:, :, ::-1]
         
-    # Гауссовское размытие со случайным скейлом. Применяется только к первым трем каналам
+    # Gaussian smoothing
     img[:3, :, :] = filters.gaussian(img[:3, :, :], np.random.rand() * 3)
 
-    # Шум с разным скейлом в разных каналах. Применяется только к первым трем каналам
+    # Noise with different scale in first 3 channels
     noise = ((np.random.rand(3, *img.shape[1:]) - 0.5) * np.random.rand(3, 1, 1))
     img[:3, :, :] += noise
     img = np.clip(img, 0., 1.)
