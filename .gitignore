@@ -18,3 +18,7 @@ sftp-config.json
 # Data folder
 data/*
 !data/.gitkeep
+
+# Pytorch lightning
+*lightning_logs*
+*.ckpt

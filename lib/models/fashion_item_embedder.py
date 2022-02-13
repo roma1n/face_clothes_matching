@@ -22,13 +22,6 @@ class FashionItemEmbedder(AbstractModel, nn.Module):
             input = np.load(input)
         return self.model(torch.tensor(input).float().unsqueeze(0))[0].tolist()
 
-    def apply_batched(self, batch):
-        '''
-        Model application on batch. Applies on elements one by one by default. 
-        Should be implemented if more efficient batch application is possible.
-        '''
-        return [self.apply(elem) for elem in batch]
-
     def get_torch_model(self):
         '''
         Returns torch model if exists. Returns None by default.

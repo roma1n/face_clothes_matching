@@ -46,17 +46,17 @@ class Segmenation(LightningModule):
         loss = self.criterion(logits, mask)
         iou = metrics.intersection_over_union(logits, mask)
 
-        return loss, {"loss": loss.item(), 'iou': iou}
+        return loss, {'loss': loss.item(), 'iou': iou}
 
     def training_step(self, batch, batch_idx):
         loss, logs = self.step(batch, batch_idx)
         self.log('train_step_iou', logs['iou'], on_step=True, prog_bar=True)
-        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=False, on_epoch=True)
+        self.log_dict({f'train_{k}': v for k, v in logs.items()}, on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss, logs = self.step(batch, batch_idx)
-        self.log_dict({f"val_{k}": v for k, v in logs.items()}, on_step=False, on_epoch=True)
+        self.log_dict({f'val_{k}': v for k, v in logs.items()}, on_step=False, on_epoch=True)
         return loss
 
     def configure_optimizers(self):
@@ -236,5 +236,5 @@ def main():
     return dm, ml_task, trainer
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     dm, ml_task, trainer = main()

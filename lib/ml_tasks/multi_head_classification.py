@@ -68,7 +68,7 @@ class MultiHeadClassification(LightningModule):
             else:
                 loss += head_loss
 
-        logs = {"loss": loss.item()}
+        logs = {'loss': loss.item()}
         logs.update({
             f'roc_auc_{head_name}': metrics.roc_auc(
                 logits[head_name],
@@ -88,13 +88,13 @@ class MultiHeadClassification(LightningModule):
     def training_step(self, batch, batch_idx):
         loss, logs = self.step(batch, batch_idx)
         print(logs)
-        self.log_dict({f"step_train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
-        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=False, on_epoch=True)
+        self.log_dict({f'step_train_{k}': v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
+        self.log_dict({f'train_{k}': v for k, v in logs.items()}, on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss, logs = self.step(batch, batch_idx)
-        self.log_dict({f"val_{k}": v for k, v in logs.items()})
+        self.log_dict({f'val_{k}': v for k, v in logs.items()})
         return loss
 
     def configure_optimizers(self):
@@ -257,7 +257,7 @@ def main():
     trainer = Trainer(
         callbacks=[
             EarlyStopping(
-                monitor="val_loss",
+                monitor='val_loss',
                 min_delta=0.0,
                 patience=3,
                 mode='min',
@@ -270,5 +270,5 @@ def main():
     return dm, ml_task, trainer
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     dm, ml_task, trainer = main()
