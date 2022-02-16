@@ -217,24 +217,3 @@ class SegmentationDataModule(LightningDataModule):
 
     def test_dataloader(self):
         return self._dataloader_by_split('test')
-
-
-def main():
-    dm = SegmentationDataModule(os.path.join(os.environ['PROJECT_DIR'], 'data', 'segmentation'), full=False)
-
-    # model = unet_transformer.UnetTransformer(num_classes=dm.num_classes)
-    model = unet.UNET(num_classes=dm.num_classes, base_channel_num=16)
-    # ckpt = torch.load('lightning_logs/version_6/checkpoints/epoch=0-step=299.ckpt')
-    # model.load_state_dict({
-    #     '.'.join(k.split('.')[1:]): v for k, v in ckpt['state_dict'].items()
-    # })
-
-    ml_task = Segmenation(model)
-    trainer = Trainer()
-
-    trainer.fit(ml_task, datamodule=dm)
-    return dm, ml_task, trainer
-
-
-if __name__ == '__main__':
-    dm, ml_task, trainer = main()

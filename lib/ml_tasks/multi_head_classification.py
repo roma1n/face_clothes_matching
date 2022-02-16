@@ -249,26 +249,3 @@ class ClothesClassificationDataModule(LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False)
-
-
-def main():
-    dm = ClothesClassificationDataModule(os.path.join(os.environ['PROJECT_DIR'], 'data', 'lamoda'))
-    ml_task = MultiHeadClassification(resnet.ExtendedResnetEmbedder(n_extend_chennels=0), dm.heads_desc)
-    trainer = Trainer(
-        callbacks=[
-            EarlyStopping(
-                monitor='val_loss',
-                min_delta=0.0,
-                patience=3,
-                mode='min',
-            ),
-        ],
-        val_check_interval=0.25, # check validation score 4 times per epoch
-    )
-
-    trainer.fit(ml_task, datamodule=dm)
-    return dm, ml_task, trainer
-
-
-if __name__ == '__main__':
-    dm, ml_task, trainer = main()

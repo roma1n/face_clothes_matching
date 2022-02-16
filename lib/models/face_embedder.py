@@ -15,13 +15,6 @@ class FaceEmbedder(AbstractModel, nn.Module):
     def apply(self, input):
         return DeepFace.represent(input, model=self.model, detector_backend='ssd')
 
-    def apply_batched(self, batch):
-        '''
-        Model application on batch. Applies on elements one by one by default. 
-        Should be implemented if more efficient batch application is possible.
-        '''
-        return [self.apply(elem) for elem in batch]
-
     def get_torch_model(self):
         '''
         Returns torch model if exists. Returns None by default.
