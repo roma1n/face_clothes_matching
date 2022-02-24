@@ -218,21 +218,26 @@ class ClothesClassificationDataModule(LightningDataModule):
         'brand': 'Northland'
     }
     '''
-    def __init__(self, data_dir: str, batch_size: int = 100):
-        super().__init__()
-        self.data_dir = data_dir
-        self.batch_size = batch_size
-
-        self.images_path = os.path.join(self.data_dir, 'transformed')
-
-        self.heads_desc = {
+    def __init__(
+        self,
+        data_dir: str,
+        batch_size: int = 100,
+        heads_desc = {
             'category': 56,
             'season': 4,
             'color': 20,
             'print': 11,
-            # 'country': 73,
-            # 'brand': 652,
-        }
+        },
+        transformed_subdir='transformed',
+    ):
+        super().__init__()
+        self.data_dir = data_dir
+        self.batch_size = batch_size
+        self.transformed_subdir = transformed_subdir
+
+        self.images_path = os.path.join(self.data_dir, self.transformed_subdir)
+
+        self.heads_desc = heads_desc
 
         with open(os.path.join(self.data_dir, 'desc.json'), 'r') as f:
             self.desc = json.loads(f.read())

@@ -19,6 +19,7 @@ from pytorch_lightning import (
 )
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
+import config
 from lib.utils import metrics
 from lib.torch_models import dssm
 
@@ -28,16 +29,18 @@ class Matching(LightningModule):
         self,
         model: nn.Module,
         lr: float = 1e-3,
+        top_k: int = -1,
     ):
         super().__init__()
 
         self.model = model
         self.lr = lr
+        self.top_k = top_k
 
         self.criterion = nn.CrossEntropyLoss()
 
-    def forward(self, x):
-        return self.embedder(x)
+    def forward(self, x, y):
+        return self.model(x, y)
 
     def step(self, batch, batch_idx):
         x, y = batch['x'], batch['y']
@@ -49,6 +52,16 @@ class Matching(LightningModule):
             self.model(x, torch.roll(y, i, 0)) for i in range(batch_size)
         ], dim=1)
 
+        roc_auc = metrics.dssm_roc_auc(logits)
+
+        if self.top_k > 0:
+            _, indices = logits.topk(self.top_k, dim=1)
+            bad_idx = torch.ones(batch_size, batch_size).long()
+            bad_idx[:, 0] = 0
+            bad_idx[indices] = 0
+            logits[bad_idx] = config.MATCHING_IGNORE_LOGIT_VALUE
+
+
         loss = self.criterion(
             logits,
             torch.zeros(batch_size).long(),  # The truth pair for each object is in row with zero shift
@@ -56,7 +69,7 @@ class Matching(LightningModule):
 
         logs = {
             'loss': loss.item(),
-            'roc_auc': metrics.dssm_roc_auc(logits)
+            'roc_auc': roc_auc
         }
 
         return loss, logs
@@ -132,12 +145,16 @@ class FaceClothesMatchingDataModule(LightningDataModule):
         'fashion_item': [0.4, -0.1, -0.7],
     }
     '''
-    def __init__(self, data_dir: str, batch_size: int = 100):
+    def __init__(
+        self,
+        embeddings_path:str,
+        batch_size: int = 100,
+    ):
         super().__init__()
-        self.data_dir = data_dir
+        self.embeddings_path = embeddings_path
         self.batch_size = batch_size
 
-        with open(os.path.join(self.data_dir, 'embeddings.json'), 'r') as f:
+        with open(self.embeddings_path, 'r') as f:
             self.desc = json.loads(f.read())
 
         self.x_col = 'face'

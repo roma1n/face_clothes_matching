@@ -1,6 +1,8 @@
-import os
-
+import matplotlib.pyplot as plt
 import numpy as np
+import os
+import skimage.transform as sktransform
+
 import torch
 from torch import nn
 
@@ -10,17 +12,21 @@ from lib.models.abstract_model import AbstractModel
 from lib.torch_models import resnet
 
 
-class FashionItemEmbedder(AbstractModel, nn.Module):
+class FashionItemEmbedder(AbstractModel):
     def __init__(self):
         AbstractModel.__init__(self)
         nn.Module.__init__(self)
 
         self.model = self.load_base_model()
+        self.model.eval()
 
-    def apply(self, input):
+    def apply(self, input, preprocessed=False):
         if isinstance(input, str):
-            input = np.load(input)
-        return self.model(torch.tensor(input).float().unsqueeze(0))[0].tolist()
+            input = np.load(input) if preprocessed else plt.imread(input)
+        if not preprocessed:
+            input = self.preprocess(input)
+        with torch.no_grad():
+            return self.model(torch.tensor(input).float().unsqueeze(0))[0].tolist()
 
     def get_torch_model(self):
         '''
@@ -51,10 +57,13 @@ class FashionItemEmbedder(AbstractModel, nn.Module):
                 os.environ['PROJECT_DIR'],
                 'data',
                 'checkpoints',
-                'resnet_prevent_overfitting',
+                'resnet_no_faces',
                 'checkpoints',
-                'epoch=4-step=904.ckpt',
+                'epoch=6-step=1315.ckpt',
             ),
             embedder=embedder,
             heads_desc=heads_desc,
         )
+
+    def preprocess(self, input):
+        return sktransform.resize(input, config.EMBEDDER_INPUT_SHAPE).transpose(2, 0, 1)

@@ -11,6 +11,8 @@ __pycache__/
 
 # Secrets
 *.token
+*.key
+*.pem
 
 # SFTP
 sftp-config.json
@@ -20,5 +22,5 @@ data/*
 !data/.gitkeep
 
 # Pytorch lightning
-*lightning_logs*
+*logs*
 *.ckpt

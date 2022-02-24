@@ -5,10 +5,10 @@ import config
 from lib.models.abstract_model import AbstractModel
 
 
-class FaceEmbedder(AbstractModel, nn.Module):
-    def __init__(self):
+class FaceEmbedder(AbstractModel):
+    def __init__(self, deepface_model=None):
+        self.deepface_model = deepface_model or config.DEEPFACE_MODEL
         AbstractModel.__init__(self)
-        nn.Module.__init__(self)
 
         self.model = self.load_base_model()
 
@@ -28,4 +28,4 @@ class FaceEmbedder(AbstractModel, nn.Module):
         pass
 
     def load_base_model(self):
-        return DeepFace.build_model(config.DEEPFACE_MODEL)
+        return DeepFace.build_model(self.deepface_model)
