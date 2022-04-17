@@ -1,6 +1,8 @@
+import collections
 import logging
 import numpy as np
 import os
+import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 import tqdm
@@ -58,7 +60,6 @@ def apply_segmentation(
     output_path,
     batch_size=100,
 ):
-
     def postprocess(mask, image):
         mask = mask.reshape(10, 224**2).T
         gm = mixture.GaussianMixture(n_components=2, random_state=0).fit(
@@ -82,16 +83,68 @@ def apply_segmentation(
                 np.save(f, postprocess(t, i))
 
 
-def process_with_model(
+def process_dir_with_model(
     model,
-    input,
+    batch_size,
+    input_path,
     output_path=None,
+    preprocessed=False,
+    postprocess_result=None,
 ):
     '''
     If output path is None the result is return
-    If output path is not None the result is saved to specified dir # TODO: implement
+    If output path is not None the result is saved to specified dir (each element saved to separated file)
     '''
+    postprocess_result = postprocess_result or (lambda x: x)
+
     if output_path is None:
-        pass
+        result = []
+
+
+        filenames = os.listdir(input_path)
+        absolute_filenames = list(map(lambda x: os.path.join(input_path, x), filenames))
+
+        for batch_begin in tqdm.tqdm(range(0, len(filenames), batch_size)):
+            result.extend([
+                {
+                    'filename': filename,
+                    'result': postprocess_result(result),
+                } for filename, result in zip(
+                    filenames[batch_begin: batch_begin + batch_size],
+                    model.apply_batched(
+                        absolute_filenames[batch_begin: batch_begin + batch_size],
+                        preprocessed=preprocessed,
+                    ),
+                )
+            ])
+
+        return result
     else:
+        # TODO: implement
         assert False, 'Not implemented'
+
+
+def find_best_matches(
+    matching_model,
+    face_processor,
+    face_img_path,
+    fashion_items,
+    top_k=5,
+    batch_size=100,
+):
+    face_embedding = face_processor.apply(face_img_path)
+
+    result = dict()
+
+    for batch_begin in tqdm.tqdm(range(0, len(fashion_items), batch_size), file=sys.stderr):
+        batch = fashion_items[batch_begin: batch_begin + batch_size]
+        batch_res = matching_model.apply_batched({
+            'x': [face_embedding for _ in range(len(batch))],
+            'y': [fashion_item['result'] for fashion_item in batch],
+        })
+
+        for fashion_item, fashion_item_res in zip(batch, batch_res):
+            result[fashion_item['filename'].split('_')[0]] = fashion_item_res
+
+    result = sorted(result, key=result.get, reverse=True)
+    return result[:top_k]

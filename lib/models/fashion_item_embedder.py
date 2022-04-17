@@ -28,6 +28,27 @@ class FashionItemEmbedder(AbstractModel):
         with torch.no_grad():
             return self.model(torch.tensor(input).float().unsqueeze(0))[0].tolist()
 
+    def apply_batched(self, input, preprocessed=False):
+        '''
+        input -- list of np arrays
+        '''
+        if len(input) == 0:
+            return []
+
+        if isinstance(input[0], str):
+            input = [np.load(i) if preprocessed else plt.imread(i) for i in input]
+
+        if not preprocessed:
+            input = [self.preprocess(i) for i in input]
+
+        output = [
+            t.detach().cpu().numpy() for t in self.model(
+                torch.stack([torch.tensor(t).float() for t in input])
+            )
+        ]
+
+        return output
+
     def get_torch_model(self):
         '''
         Returns torch model if exists. Returns None by default.

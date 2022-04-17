@@ -1,4 +1,5 @@
 import os
+import sys
 
 import numpy as np
 import torch
@@ -17,6 +18,23 @@ class FaceFashionItemMatching(AbstractModel):
 
         self.model = self.load_base_model()
         self.model.eval()
+
+    def apply_batched(self, input):
+        '''
+        input -- list of np arrays
+        '''
+        if len(input) == 0:
+            return []
+
+        with torch.no_grad():
+            output = [
+                t.detach().cpu().item() for t in self.model(
+                    torch.stack([torch.tensor(t).float() for t in input['x']]),
+                    torch.stack([torch.tensor(t).float() for t in input['y']]),
+                )
+            ]
+
+        return output
 
     def apply(self, input):
         with torch.no_grad():

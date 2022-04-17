@@ -14,6 +14,13 @@ PROJECT_DIR = os.environ['PROJECT_DIR']
 DATA_DIR = os.path.join(PROJECT_DIR, 'data')
 TOKENS_DIR = os.path.join(PROJECT_DIR, 'tokens')
 
+# Lamoda dataset
+LAMODA_DIR = os.path.join(DATA_DIR, 'lamoda')
+LAMODA_IMG_DIR = os.path.join(LAMODA_DIR, 'img')
+LAMODA_TRANSFORMED_IMG_DIR = os.path.join(LAMODA_DIR, 'transformed')
+LAMODA_IMG_WITH_SEGMENTATION_DIR = os.path.join(LAMODA_DIR, 'segmentation')
+LAMODA_FASHION_ITEM_EMBDDEINGS_PATH = os.path.join(LAMODA_DIR, 'fashion_item_embeddings.json')
+
 # API
 API_HOST = '178.154.250.149'
 API_PORT = 8443

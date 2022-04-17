@@ -4,8 +4,10 @@ import requests
 import telebot
 
 import config
+from lib.inference import fashion_item_recomendator
 from lib.utils import web
 
+suggester = fashion_item_recomendator.FashionItemRecomedator()
 
 with open(config.DEMO_BOT_TOKEN_PATH, 'r') as f:
     TOKEN = f.read()
@@ -50,9 +52,23 @@ def send_welcome(message):
 def show_demo(message):
     bot.send_message(
         message.from_user.id,
-        'Processing...',
+        'Processing. It takes up about 20 seconds.',
     )
     local_path = save_file(message.photo[-1].file_id)
+
+    suggestions = suggester.process_face_img(local_path)
+
+    for fashion_item_img_path, fashion_item_url in zip(
+        suggestions['img_paths'],
+        suggestions['urls'],
+    ):
+        with open(fashion_item_img_path, 'rb') as photo:
+            bot.send_photo(
+                message.from_user.id,
+                photo,
+                caption=fashion_item_url,
+            )
+
 
 
 if __name__ == '__main__':
